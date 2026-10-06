@@ -1,0 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+
+
+namespace api_custo_prato.src.Requests.GenericTable
+{
+    public class CreateGenericTableRequest : Request
+    {
+        [Required(ErrorMessage = "O Nome é obrigatório.")]
+        public string Name { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "A Tabela é obrigatória.")]
+        public string Table { get; set; } = string.Empty;
+    }
+}
