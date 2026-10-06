@@ -25,12 +25,13 @@ namespace api_custo_prato.src.Services
                         {"_id", 0},
                         {"id", MongoUtil.ToString("$_id")},
                         {"code", 1},
-                        {"name", 1}
+                        {"name", 1},
+                        {"table", 1}
                     })
                 ];
 
                 List<dynamic> entities = await repository.GetSelectAsync(pipeline);
-                return new(entities, 200, "Operações listados com sucesso");
+                return new(entities, 200, "Registros listados com sucesso");
             }
             catch (Exception ex)
             {
@@ -44,19 +45,27 @@ namespace api_custo_prato.src.Services
         {
             try
             {
-                GenericTable GenericTable = ObjectMapper.Map<CreateGenericTableRequest, GenericTable>(request);
+                GenericTable entity = ObjectMapper.Map<CreateGenericTableRequest, GenericTable>(request);
+                entity.UserId = request.UserId;
+                entity.CreatedBy = request.CreatedBy;
+                entity.CreatedAt = DateTime.UtcNow;
+                entity.UpdatedAt = DateTime.UtcNow;
+                entity.Deleted = false;
+                entity.Name = request.Name;
+                long code = await repository.NextCodeAsync(request.Table, request.UserId);
 
-                GenericTable? response = await repository.CreateAsync(GenericTable);
-                if (response is null) return new(null, 400, "Falha ao salvar anexo.");
+                entity.Code = code.ToString().PadLeft(4, '0');
 
-                return new(response, 201, "Anexo criado com sucesso.");
+                GenericTable? response = await repository.CreateAsync(entity);
+                if (response is null) return new(null, 400, "Falha ao salvar registro.");
+
+                return new(response, 201, "Registro criado com sucesso.");
             }
-            catch
+            catch (Exception ex)
             {
-                return new(null, 500, $"Ocorreu um erro inesperado. Por favor, tente novamente mais tarde");
+                return new(null, 500, $"Ocorreu um erro inesperado: {ex.Message}");
             }
         }
-
         #endregion
 
         #region UPDATE
@@ -67,6 +76,7 @@ namespace api_custo_prato.src.Services
                 GenericTable? existed = await repository.GetByIdAsync(request.Id);
                 if (existed is null) return new(null, 404, "Falha ao atualizar");
 
+                existed.Name = request.Name;
                 existed.UpdatedAt = DateTime.UtcNow;
                 existed.UpdatedBy = request.UpdatedBy;
 
@@ -77,25 +87,31 @@ namespace api_custo_prato.src.Services
             }
             catch (Exception ex)
             {
-                return new(null, 500, $"Ocorreu um erro inesperado. Por favor, tente novamente mais tarde. {ex.Message}");
+                return new(null, 500, $"Ocorreu um erro inesperado: {ex.Message}");
             }
         }
         #endregion
 
-        // #region DELETE
-        // public async Task<ResponseApi<GenericTable>> DeleteAsync(DeleteDTO request)
-        // {
-        //     try
-        //     {
-        //         ResponseApi<GenericTable> GenericTable = await repository.DeleteAsync(request);
-        //         if (!GenericTable.IsSuccess) return new(null, 400, GenericTable.Message);
-        //         return new(GenericTable.Data, 204, "Anexo excluído com sucesso");
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         return new(null, 500, $"Ocorreu um erro inesperado. Por favor, tente novamente mais tarde. {ex.Message}");
-        //     }
-        // }
-        // #endregion        
+        #region DELETE
+        public async Task<ResponseApi<dynamic?>> DeleteAsync(string id, string userId)
+        {
+            try
+            {
+                GenericTable? existed = await repository.GetByIdAsync(id);
+                if (existed is null || existed.UserId != userId) return new(null, 404, "Registro não encontrado");
+
+                existed.Deleted = true;
+                existed.UpdatedAt = DateTime.UtcNow;
+                existed.UpdatedBy = userId;
+
+                await repository.UpdateAsync(existed);
+                return new(null, 200, "Registro excluído com sucesso");
+            }
+            catch (Exception ex)
+            {
+                return new(null, 500, $"Erro ao excluir: {ex.Message}");
+            }
+        }
+        #endregion        
     }
 }

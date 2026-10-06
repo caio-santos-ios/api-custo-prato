@@ -10,5 +10,7 @@ namespace api_custo_prato.src.Requests.GenericTable
         
         [Required(ErrorMessage = "A Tabela é obrigatória.")]
         public string Table { get; set; } = string.Empty;
+
+        public string? Code { get; set; }
     }
 }

@@ -18,7 +18,10 @@ namespace api_custo_prato.src.Controllers
         [HttpGet("select")]
         public async Task<IActionResult> GetAll()
         {
-            ResponseApi<List<dynamic>> response = await service.GetSelectAsync(new(Request.Query));
+            var dict = Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
+            if (!dict.ContainsKey("userId")) dict["userId"] = UserId;
+
+            ResponseApi<List<dynamic>> response = await service.GetSelectAsync(new(dict));
             return StatusCode(response.StatusCode, response.Result);
         }
 
@@ -44,11 +47,11 @@ namespace api_custo_prato.src.Controllers
             return StatusCode(response.StatusCode, response.Result);
         }
 
-        // [HttpDelete("{id}")]
-        // public async Task<IActionResult> Delete(string id)
-        // {
-        //     ResponseApi<dynamic?> response = await service.DeleteAsync(new() { Id = id, DeletedBy = UserId }, UserId);
-        //     return StatusCode(response.StatusCode, response.Result);
-        // }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            ResponseApi<dynamic?> response = await service.DeleteAsync(id, UserId);
+            return StatusCode(response.StatusCode, response.Result);
+        }
     }
 }

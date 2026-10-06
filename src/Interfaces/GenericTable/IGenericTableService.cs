@@ -10,5 +10,6 @@ namespace api_custo_prato.src.Interfaces
         Task<ResponseApi<List<dynamic>>> GetSelectAsync(GetAllDTO request);
         Task<ResponseApi<GenericTable?>> CreateAsync(CreateGenericTableRequest request);
         Task<ResponseApi<GenericTable?>> UpdateAsync(UpdateGenericTableRequest request);
+        Task<ResponseApi<dynamic?>> DeleteAsync(string id, string userId);
     }
 }

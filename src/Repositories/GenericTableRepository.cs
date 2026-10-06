@@ -21,6 +21,10 @@ namespace api_custo_prato.src.Repository
         {
             return await context.GenericTables.Find(x => x.Id == id && !x.Deleted).FirstOrDefaultAsync();
         }
+        public async Task<long> NextCodeAsync(string table, string userId)
+        {
+            return await context.GenericTables.Find(x => x.Table == table && x.UserId == userId && !x.Deleted).CountDocumentsAsync();
+        }
 
         public async Task<GenericTable> CreateAsync(GenericTable entity)
         {

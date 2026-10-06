@@ -7,6 +7,7 @@ namespace api_custo_prato.src.Interfaces
     {
         Task<List<dynamic>> GetSelectAsync(List<BsonDocument> pipeline);
         Task<GenericTable?> GetByIdAsync(string id);
+        Task<long> NextCodeAsync(string table, string userId);
         Task<GenericTable> CreateAsync(GenericTable entity);
         Task<GenericTable> UpdateAsync(GenericTable entity);
     }
